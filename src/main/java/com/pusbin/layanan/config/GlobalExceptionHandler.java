@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import com.pusbin.common.dto.ApiResponse;
+import com.pusbin.layanan.common.dto.ApiResponse;
 import com.pusbin.layanan.exception.ConflictException;
 
 @RestControllerAdvice
