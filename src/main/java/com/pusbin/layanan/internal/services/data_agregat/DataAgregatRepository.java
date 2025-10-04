@@ -24,7 +24,7 @@ public interface DataAgregatRepository
     Long getTotalPegawai();
 
     @Query("""
-    SELECT new com.pusbin.layanan.data_agregat.dto.ResponseGetJabatan(
+    SELECT new com.pusbin.layanan.internal.services.data_agregat.dto.ResponseGetJabatan(
         nj.namaJabatan,
         SUM(d.jumlah)
     )
@@ -36,7 +36,7 @@ public interface DataAgregatRepository
     List<ResponseGetJabatan> getJumlahByJabatan();
 
     @Query("""
-        SELECT new com.pusbin.layanan.data_agregat.dto.ResponseGetWilayahKerja(
+        SELECT new com.pusbin.layanan.internal.services.data_agregat.dto.ResponseGetWilayahKerja(
             w.namaWilayah,
             SUM(d.jumlah)
         )
@@ -48,7 +48,7 @@ public interface DataAgregatRepository
     List<ResponseGetWilayahKerja> getJumlahByWilayahKerja();
 
     @Query("""
-    SELECT new com.pusbin.layanan.data_agregat.dto.ResponseGetInstansi(
+    SELECT new com.pusbin.layanan.internal.services.data_agregat.dto.ResponseGetInstansi(
         i.namaInstansi,
         SUM(d.jumlah)
     )
@@ -59,7 +59,7 @@ public interface DataAgregatRepository
     List<ResponseGetInstansi> getJumlahByInstansi();
 
     @Query("""
-    SELECT new com.pusbin.layanan.data_agregat.dto.ResponseGetSebaran(
+    SELECT new com.pusbin.layanan.internal.services.data_agregat.dto.ResponseGetSebaran(
         k.kategoriInstansi,
         jg.jenjang,
         SUM(d.jumlah)
@@ -74,7 +74,7 @@ public interface DataAgregatRepository
     List<ResponseGetSebaran> getJumlahBySebaran();
 
     @Query("""
-    SELECT new com.pusbin.layanan.data_agregat.dto.ResponseGetSebaranInstansi(
+    SELECT new com.pusbin.layanan.internal.services.data_agregat.dto.ResponseGetSebaranInstansi(
         k.kategoriInstansi,
         nj.namaJabatan,
         SUM(d.jumlah)
@@ -89,7 +89,7 @@ public interface DataAgregatRepository
     List<ResponseGetSebaranInstansi> getJumlahBySebaranInstansi();
 
     @Query("""
-    SELECT new com.pusbin.layanan.data_agregat.dto.ResponseGetSebaranJenjang(
+    SELECT new com.pusbin.layanan.internal.services.data_agregat.dto.ResponseGetSebaranJenjang(
         jg.jenjang,
         a.jenisAsn,
         SUM(d.jumlah)
@@ -103,7 +103,7 @@ public interface DataAgregatRepository
     List<ResponseGetSebaranJenjang> getJumlahBySebaranJenjang();
 
     @Query("""
-    SELECT new com.pusbin.layanan.data_agregat.dto.ResponseGetGrafikPresentase(
+    SELECT new com.pusbin.layanan.internal.services.data_agregat.dto.ResponseGetGrafikPresentase(
         nj.namaJabatan,
         SUM(d.jumlah)
     )

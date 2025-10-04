@@ -6,11 +6,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.pusbin.layanan.common.dto.ApiResponse;
-import com.pusbin.layanan.security.JwtUtil;
 import com.pusbin.layanan.internal.services.user.dto.LoginRequest;
 import com.pusbin.layanan.internal.services.user.dto.LoginResponse;
 import com.pusbin.layanan.internal.services.user.dto.RegisterRequest;
 import com.pusbin.layanan.internal.services.user.dto.UserData;
+import com.pusbin.layanan.security.JwtUtil;
 
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
@@ -34,7 +34,7 @@ public class UserController {
         LoginResponse response = service.login(request);
 
         Cookie cookie = new Cookie("access_token", response.getAccess_token());
-        cookie.setHttpOnly(true);
+        cookie.setHttpOnly(false);
         cookie.setSecure(false); // aktifkan kalau pakai HTTPS
         cookie.setPath("/");
         cookie.setMaxAge((int) JwtUtil.getExpiredTime()); // 1 jam
