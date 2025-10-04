@@ -24,15 +24,15 @@ public interface DataAgregatRepository
     Long getTotalPegawai();
 
     @Query("""
-SELECT new com.pusbin.layanan.data_agregat.dto.ResponseGetJabatan(
-    nj.namaJabatan,
-    SUM(d.jumlah)
-)
-FROM DataAgregat d
-JOIN d.jabatan j
-JOIN j.namaJabatan nj
-GROUP BY nj.namaJabatan
-""")
+    SELECT new com.pusbin.layanan.data_agregat.dto.ResponseGetJabatan(
+        nj.namaJabatan,
+        SUM(d.jumlah)
+    )
+    FROM DataAgregat d
+    JOIN d.jabatan j
+    JOIN j.namaJabatan nj
+    GROUP BY nj.namaJabatan
+    """)
     List<ResponseGetJabatan> getJumlahByJabatan();
 
     @Query("""
