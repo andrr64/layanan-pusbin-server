@@ -1,4 +1,4 @@
-package com.pusbin.layanan.internal.services.common.dto;
+package com.pusbin.layanan.internal.common.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

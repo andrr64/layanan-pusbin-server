@@ -8,8 +8,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 
+import com.pusbin.layanan.internal.common.dto.TabelPegawai;
 import com.pusbin.layanan.internal.models.DataAgregat;
-import com.pusbin.layanan.internal.services.common.dto.TabelPegawai;
 import com.pusbin.layanan.internal.services.data_agregat.dto.ResponseGetGrafikPresentase;
 import com.pusbin.layanan.internal.services.data_agregat.dto.ResponseGetInstansi;
 import com.pusbin.layanan.internal.services.data_agregat.dto.ResponseGetJabatan;

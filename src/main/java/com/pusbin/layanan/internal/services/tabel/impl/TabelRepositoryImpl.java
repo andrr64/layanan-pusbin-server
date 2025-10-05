@@ -12,8 +12,8 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
-import com.pusbin.layanan.internal.services.common.dto.TabelPegawai;
-import com.pusbin.layanan.internal.services.common.types.FilterDataAgregat;
+import com.pusbin.layanan.internal.common.dto.TabelPegawai;
+import com.pusbin.layanan.internal.common.types.FilterDataAgregat;
 import com.pusbin.layanan.internal.services.tabel.TabelRepository;
 
 import jakarta.persistence.EntityManager;

@@ -1,4 +1,4 @@
-package com.pusbin.layanan.internal.services.common.types;
+package com.pusbin.layanan.internal.common.types;
 
 import java.util.List;
 

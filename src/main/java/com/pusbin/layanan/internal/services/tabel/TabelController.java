@@ -9,8 +9,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.pusbin.layanan.common.dto.ApiResponse;
-import com.pusbin.layanan.internal.services.common.dto.TabelPegawai;
-import com.pusbin.layanan.internal.services.common.types.FilterDataAgregat;
+import com.pusbin.layanan.internal.common.dto.TabelPegawai;
+import com.pusbin.layanan.internal.common.types.FilterDataAgregat;
 
 @RestController
 @RequestMapping("/api/v1/tabel")
