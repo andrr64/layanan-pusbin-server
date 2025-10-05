@@ -5,14 +5,15 @@ import org.springframework.stereotype.Service;
 
 import com.pusbin.layanan.common.utils.HashUtil;
 import com.pusbin.layanan.exception.ConflictException;
+import com.pusbin.layanan.exception.NotFoundException;
 import com.pusbin.layanan.internal.models.User;
-import com.pusbin.layanan.security.JwtUtil;
 import com.pusbin.layanan.internal.services.user.UserRepository;
 import com.pusbin.layanan.internal.services.user.UserService;
 import com.pusbin.layanan.internal.services.user.dto.LoginRequest;
 import com.pusbin.layanan.internal.services.user.dto.LoginResponse;
 import com.pusbin.layanan.internal.services.user.dto.RegisterRequest;
 import com.pusbin.layanan.internal.services.user.dto.UserData;
+import com.pusbin.layanan.security.JwtUtil;
 
 import jakarta.transaction.Transactional;
 
@@ -57,12 +58,12 @@ public class UserServiceImpl implements UserService {
     public LoginResponse login(LoginRequest request) {
         // Cari user berdasarkan username
         User user = repository.findByUsername(request.getUsername())
-                .orElseThrow(() -> new RuntimeException("User tidak ditemukan"));
+                .orElseThrow(() -> new NotFoundException("User tidak ditemukan!"));
 
         // Validasi password (pakai HashUtil.validate)
         boolean valid = HashUtil.validate(request.getPassword(), user.getPassword());
         if (!valid) {
-            throw new RuntimeException("Username atau password salah");
+            throw new NotFoundException("User tidak ditemukan!");
         }
 
         // Jika lolos validasi, buat response

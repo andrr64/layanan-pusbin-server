@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.pusbin.layanan.common.dto.ApiResponse;
 import com.pusbin.layanan.exception.ConflictException;
+import com.pusbin.layanan.exception.NotFoundException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -17,8 +18,13 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiResponse<Object> handleValidationErrors(MethodArgumentNotValidException ex) {
-        String errorMessage = ex.getBindingResult().getFieldErrors().get(0).getDefaultMessage();
-        return ApiResponse.error(errorMessage, null);
+        return ApiResponse.error("Required request body is missing or invalid", null);
+    }
+
+    @ExceptionHandler(NotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ApiResponse<Object> handleNotFound(NotFoundException ex) {
+        return ApiResponse.error(ex.getMessage(), null);
     }
 
     // Handler untuk body request yang hilang atau formatnya salah
@@ -34,12 +40,14 @@ public class GlobalExceptionHandler {
     public ApiResponse<Object> handleConflict(Exception ex) {
         return ApiResponse.error(ex.getMessage(), null);
     }
+
     // Handler untuk semua jenis exception lain
     @ExceptionHandler(RuntimeException.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ApiResponse<Object> handleRuntimeException(Exception ex) {
         return ApiResponse.error(ex.getMessage(), null);
     }
+
     // Handler untuk semua jenis exception lain
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
