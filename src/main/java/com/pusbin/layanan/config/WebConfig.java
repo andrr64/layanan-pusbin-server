@@ -18,6 +18,7 @@ public class WebConfig {
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                         .allowCredentials(true) // wajib kalau pakai cookie
                         .allowedHeaders("*")
+                        .allowedOriginPatterns("*")
                         .exposedHeaders("Set-Cookie"); // agar browser bisa menerima cooki
             }
         };

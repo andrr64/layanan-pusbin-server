@@ -32,24 +32,18 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ConflictException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
     public ApiResponse<Object> handleConflict(Exception ex) {
-        // Penting untuk log di sini saat development
-        ex.printStackTrace();
         return ApiResponse.error(ex.getMessage(), null);
     }
     // Handler untuk semua jenis exception lain
     @ExceptionHandler(RuntimeException.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ApiResponse<Object> handleRuntimeException(Exception ex) {
-        // Penting untuk log di sini saat development
-        ex.printStackTrace();
         return ApiResponse.error(ex.getMessage(), null);
     }
     // Handler untuk semua jenis exception lain
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ApiResponse<Object> handleGenericException(Exception ex) {
-        // Penting untuk log di sini saat development
-        ex.printStackTrace();
         return ApiResponse.error("An internal server error occurred", null);
     }
 }

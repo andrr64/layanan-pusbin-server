@@ -2,11 +2,14 @@ package com.pusbin.layanan.internal.services.data_agregat;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 
 import com.pusbin.layanan.internal.models.DataAgregat;
+import com.pusbin.layanan.internal.services.common.dto.TabelPegawai;
 import com.pusbin.layanan.internal.services.data_agregat.dto.ResponseGetGrafikPresentase;
 import com.pusbin.layanan.internal.services.data_agregat.dto.ResponseGetInstansi;
 import com.pusbin.layanan.internal.services.data_agregat.dto.ResponseGetJabatan;
@@ -113,5 +116,63 @@ public interface DataAgregatRepository
     GROUP BY nj.namaJabatan
 """)
     List<ResponseGetGrafikPresentase> getJumlahByGrafikPresentase();
+
+    @Query(
+    value = """
+        SELECT new com.pusbin.layanan.internal.services.common.dto.TabelPegawai(
+        nj.namaJabatan,
+        SUM(d.jumlah)
+    )
+    FROM DataAgregat d
+    JOIN d.jabatan j
+    JOIN j.namaJabatan nj
+    GROUP BY nj.namaJabatan
+    """,
+    countQuery = """
+        SELECT COUNT(DISTINCT nj.namaJabatan)
+            FROM DataAgregat d
+            JOIN d.jabatan j
+            JOIN j.namaJabatan nj
+    """
+    )
+    Page<TabelPegawai> getJumlahPegawaiBerdasarkanJabatan(Pageable pageable);
+
+    @Query(
+            value = """
+        SELECT new com.pusbin.layanan.internal.services.common.dto.TabelPegawai(
+            i.namaInstansi,
+            SUM(d.jumlah)
+        )
+        FROM DataAgregat d
+        JOIN d.instansi i
+        GROUP BY i.namaInstansi
+    """,
+            countQuery = """
+        SELECT COUNT(DISTINCT i.namaInstansi)
+        FROM DataAgregat d
+        JOIN d.instansi i
+    """
+    )
+    Page<TabelPegawai> getJumlahBerdasarkanInstansi(Pageable pageable);
+
+    @Query(
+            value = """
+        SELECT new com.pusbin.layanan.internal.services.common.dto.TabelPegawai(
+            wk.namaWilayah,
+            SUM(d.jumlah)
+        )
+        FROM DataAgregat d
+        JOIN d.instansi di
+        JOIN di.wilayahKerja wk
+        GROUP BY wk.namaWilayah
+    """,
+            countQuery = """
+        SELECT COUNT(DISTINCT wk.namaWilayah)
+        FROM DataAgregat d
+        JOIN d.instansi di
+        JOIN di.wilayahKerja wk
+    """
+    )
+    Page<TabelPegawai> getJumlahBerdasarkanWilker(Pageable pageable);
 
 }
