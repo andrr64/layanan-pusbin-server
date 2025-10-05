@@ -119,7 +119,7 @@ public interface DataAgregatRepository
 
     @Query(
     value = """
-        SELECT new com.pusbin.layanan.internal.services.common.dto.TabelPegawai(
+        SELECT new com.pusbin.layanan.internal.common.dto.TabelPegawai(
         nj.namaJabatan,
         SUM(d.jumlah)
     )
@@ -139,7 +139,7 @@ public interface DataAgregatRepository
 
     @Query(
             value = """
-        SELECT new com.pusbin.layanan.internal.services.common.dto.TabelPegawai(
+        SELECT new com.pusbin.layanan.internal.common.dto.TabelPegawai(
             i.namaInstansi,
             SUM(d.jumlah)
         )
@@ -157,7 +157,7 @@ public interface DataAgregatRepository
 
     @Query(
             value = """
-        SELECT new com.pusbin.layanan.internal.services.common.dto.TabelPegawai(
+        SELECT new com.pusbin.layanan.internal.common.dto.TabelPegawai(
             wk.namaWilayah,
             SUM(d.jumlah)
         )

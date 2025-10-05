@@ -103,7 +103,7 @@ public class TabelRepositoryImpl implements TabelRepository {
 
         // 2. Bangun string query untuk mengambil data (dengan paginasi)
         String dataQueryStr = String.format("""
-            SELECT new com.pusbin.layanan.internal.services.common.dto.TabelPegawai(
+            SELECT new com.pusbin.layanan.internal.common.dto.TabelPegawai(
                 %s,
                 SUM(d.jumlah)
             )
