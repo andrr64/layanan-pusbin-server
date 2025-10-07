@@ -13,13 +13,16 @@ public class WebConfig {
         return new WebMvcConfigurer() {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
-                registry.addMapping("/**") // semua endpoint
-                        .allowedOrigins("http://localhost:3000") // frontend origin
+                registry.addMapping("/**")
+                        // Gunakan pattern agar bisa fleksibel untuk semua IP lokal
+                        .allowedOriginPatterns(
+                                "http://localhost:*",
+                                "http://127.0.0.1:*",
+                                "http://192.168.*:*"
+                        )
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
-                        .allowCredentials(true) // wajib kalau pakai cookie
                         .allowedHeaders("*")
-                        .allowedOriginPatterns("*")
-                        .exposedHeaders("Set-Cookie"); // agar browser bisa menerima cooki
+                        .allowCredentials(true);
             }
         };
     }

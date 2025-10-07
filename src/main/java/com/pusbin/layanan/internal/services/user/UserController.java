@@ -10,9 +10,7 @@ import com.pusbin.layanan.internal.services.user.dto.LoginRequest;
 import com.pusbin.layanan.internal.services.user.dto.LoginResponse;
 import com.pusbin.layanan.internal.services.user.dto.RegisterRequest;
 import com.pusbin.layanan.internal.services.user.dto.UserData;
-import com.pusbin.layanan.security.JwtUtil;
 
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 
@@ -32,14 +30,6 @@ public class UserController {
             HttpServletResponse httpResponse
     ) {
         LoginResponse response = service.login(request);
-
-        Cookie cookie = new Cookie("access_token", response.getAccess_token());
-        cookie.setHttpOnly(false);
-        cookie.setSecure(false); // aktifkan kalau pakai HTTPS
-        cookie.setPath("/");
-        cookie.setMaxAge((int) JwtUtil.getExpiredTime()); // 1 jam
-        httpResponse.addCookie(cookie);
-
         return ApiResponse.success("OK bro", response);
     }
 
