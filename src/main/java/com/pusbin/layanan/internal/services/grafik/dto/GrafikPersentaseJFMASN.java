@@ -1,5 +1,7 @@
 package com.pusbin.layanan.internal.services.grafik.dto;
 
+import java.util.List;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -8,6 +10,5 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class GrafikPersentaseJFMASN {
-    private String namaJabatan;
-    Long jumlah;
+    List<GrafikKategori> data;
 }
