@@ -8,6 +8,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TotalData {
-    private String namaJabatan;
+    private String nama;
     private Long jumlah;
 }

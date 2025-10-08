@@ -8,5 +8,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class GrafikPersentaseJFMASN {
-    
+    private String namaJabatan;
+    Long jumlah;
 }
