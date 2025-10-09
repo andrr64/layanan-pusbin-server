@@ -4,6 +4,6 @@ import java.util.List;
 
 import com.pusbin.layanan.internal.services.grafik.dto.GrafikKategori;
 
-public interface  GrafikService {
-    List<GrafikKategori> getGrafikPersentaseJFMASN();
+public interface GrafikRepository {
+    List<GrafikKategori> readGrafikPersentaseJFMASN();
 }
