@@ -9,6 +9,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class GrafikKategori {
 
-    String namaJabatan;
+    String nama;
     long jumlah;
 }
