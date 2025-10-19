@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TabelPegawai {
-
     private String nama;
-    private Long jumlah;
+    private long id;
+    private long jumlah;
 }

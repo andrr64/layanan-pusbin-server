@@ -5,10 +5,12 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
-public class GrafikKategori {
-    String nama;
-    long id;
+@NoArgsConstructor
+public class GrafikSebaranJFK {
+    String kategori;
+    long kategoriInstansiId;
     long jumlah;
+    String nama;
+    long namaJabatanId;
 }

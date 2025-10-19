@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -18,7 +19,6 @@ import com.pusbin.layanan.internal.services.tabel.TabelRepository;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import jakarta.persistence.TypedQuery;
 
 @Repository
 public class TabelRepositoryImpl implements TabelRepository {
@@ -27,15 +27,14 @@ public class TabelRepositoryImpl implements TabelRepository {
     private EntityManager em;
 
     // ================================================================
-    // QUERY PARTS RECORD
+    // RECORD QUERY PARTS
     // ================================================================
     private record QueryParts(
             StringBuilder joins,
             List<String> conditions,
             Map<String, Object> params,
             Set<String> usedAliases
-            ) {
-
+    ) {
         QueryParts() {
             this(new StringBuilder(), new ArrayList<>(), new HashMap<>(), new HashSet<>());
         }
@@ -48,177 +47,7 @@ public class TabelRepositoryImpl implements TabelRepository {
     }
 
     // ================================================================
-    // IMPLEMENTASI REPOSITORY
-    // ================================================================
-    @Override
-    public Page<TabelPegawai> getJumlahPegawaiBerdasarkanInstansiWithFilter(
-            FilterDataAgregat filter, Pageable pageable
-    ) {
-        String selection = "i.namaInstansi";
-        String baseFrom = "FROM DataAgregat d JOIN d.instansi i";
-        // alias "i" sudah digunakan dari awal
-        return buildData(selection, baseFrom, filter, pageable, Set.of("i"));
-    }
-
-    @Override
-    public Page<TabelPegawai> getJumlahPegawaiBerdasarkanJabatanWithFilter(
-            FilterDataAgregat filter, Pageable pageable
-    ) {
-        String selection = "nj.namaJabatan";
-        String baseFrom = """
-            FROM DataAgregat d
-            JOIN d.jabatan j
-            JOIN j.namaJabatan nj
-        """;
-        // alias "j" dan "nj" sudah digunakan dari awal
-        return buildData(selection, baseFrom, filter, pageable, Set.of("j", "nj"));
-    }
-
-    @Override
-    public Page<TabelPegawai> getJumlahPegawaiBerdasarkanWilkerWithFilter(
-            FilterDataAgregat filter, Pageable pageable
-    ) {
-        String selection = "w.namaWilayah";
-        String baseFrom = "FROM DataAgregat d";
-        return buildData(selection, baseFrom, filter, pageable, Set.of());
-    }
-
-    // ================================================================
-    // CORE BUILDER (UTAMA)
-    // ================================================================
-    private Page<TabelPegawai> buildData(
-            String selection,
-            String baseFrom,
-            FilterDataAgregat filter,
-            Pageable pageable,
-            Set<String> initialAliases
-    ) {
-        QueryParts qp = new QueryParts();
-        qp.usedAliases.addAll(initialAliases); // cegah join ganda
-        applyFilters(qp, filter, selection);
-
-        // Query data utama
-        String dataQueryStr = String.format("""
-            SELECT new com.pusbin.layanan.internal.common.dto.TabelPegawai(
-                %s, SUM(d.jumlah)
-            )
-            %s
-            %s
-            %s
-            GROUP BY %s
-        """, selection, baseFrom, qp.joins, buildWhere(qp.conditions), selection);
-
-        TypedQuery<TabelPegawai> dataQuery = em.createQuery(dataQueryStr, TabelPegawai.class);
-        qp.params.forEach(dataQuery::setParameter);
-        dataQuery.setFirstResult((int) pageable.getOffset());
-        dataQuery.setMaxResults(pageable.getPageSize());
-
-        List<TabelPegawai> results = dataQuery.getResultList();
-
-        // Query count
-        String countQueryStr = String.format("""
-            SELECT COUNT(DISTINCT %s)
-            %s
-            %s
-            %s
-        """, selection, baseFrom, qp.joins, buildWhere(qp.conditions));
-
-        TypedQuery<Long> countQuery = em.createQuery(countQueryStr, Long.class);
-        qp.params.forEach(countQuery::setParameter);
-        Long total = countQuery.getSingleResult();
-
-        return new PageImpl<>(results, pageable, total);
-    }
-
-    // ================================================================
-    // FILTER BUILDER
-    // ================================================================
-    private void applyFilters(QueryParts qp, FilterDataAgregat f, String selection) {
-        // -- ASN
-        if (notEmpty(f.getJenisAsnId())) {
-            qp.addJoin("a", " JOIN d.asn a ");
-            qp.conditions.add("a.idAsn IN :jenisAsnId");
-            qp.params.put("jenisAsnId", f.getJenisAsnId());
-        }
-
-        // -- INSTANSI
-        boolean needInstansi = notEmpty(f.getInstansiId())
-                || notEmpty(f.getWilayahKerjaId())
-                || notEmpty(f.getKategoriInstansiId())
-                || notEmpty(f.getJenisInstansiId())
-                || notEmpty(f.getPokjaId())
-                || selection.startsWith("w.");
-
-        if (needInstansi) {
-            qp.addJoin("i", " JOIN d.instansi i ");
-        }
-
-        if (notEmpty(f.getInstansiId())) {
-            qp.conditions.add("i.idInstansi IN :instansiId");
-            qp.params.put("instansiId", f.getInstansiId());
-        }
-
-        // -- WILKER
-        if (notEmpty(f.getWilayahKerjaId()) || selection.startsWith("w.")) {
-            qp.addJoin("w", " JOIN i.wilayahKerja w ");
-            if (notEmpty(f.getWilayahKerjaId())) {
-                qp.conditions.add("w.idWilayah IN :wilayahKerjaId");
-                qp.params.put("wilayahKerjaId", f.getWilayahKerjaId());
-            }
-        }
-
-        // -- KATEGORI INSTANSI
-        if (notEmpty(f.getKategoriInstansiId())) {
-            qp.addJoin("k", " JOIN i.kategoriInstansi k ");
-            qp.conditions.add("k.idKategoriInstansi IN :kategoriInstansiId");
-            qp.params.put("kategoriInstansiId", f.getKategoriInstansiId());
-        }
-
-        // -- JENIS INSTANSI
-        if (notEmpty(f.getJenisInstansiId())) {
-            qp.addJoin("ji", " JOIN i.jenisInstansi ji ");
-            qp.conditions.add("ji.idJenisInstansi IN :jenisInstansiId");
-            qp.params.put("jenisInstansiId", f.getJenisInstansiId());
-        }
-
-        // -- POKJA
-        if (notEmpty(f.getPokjaId())) {
-            qp.addJoin("p", " JOIN i.pokja p ");
-            qp.conditions.add("p.idPokja IN :pokjaId");
-            qp.params.put("pokjaId", f.getPokjaId());
-        }
-
-        // -- JABATAN
-        boolean needJabatan = notEmpty(f.getNamaJabatanId())
-                || notEmpty(f.getJenjangId())
-                || notEmpty(f.getNomenklaturId());
-
-        if (needJabatan) {
-            qp.addJoin("j", " JOIN d.jabatan j ");
-        }
-
-        if (notEmpty(f.getNamaJabatanId())) {
-            qp.addJoin("nj", " JOIN j.namaJabatan nj ");
-            qp.conditions.add("nj.idNamaJabatan IN :namaJabatanId");
-            qp.params.put("namaJabatanId", f.getNamaJabatanId());
-        }
-
-        if (notEmpty(f.getJenjangId())) {
-            qp.addJoin("jj", " JOIN j.jenjang jj ");
-            qp.conditions.add("jj.idJenjang IN :jenjangId");
-            qp.params.put("jenjangId", f.getJenjangId());
-        }
-
-        if (notEmpty(f.getNomenklaturId())) {
-            qp.addJoin("nj", " JOIN j.namaJabatan nj ");
-            qp.addJoin("nmk", " JOIN nj.nomenklatur nmk ");
-            qp.conditions.add("nmk.idNomenklatur IN :nomenklaturId");
-            qp.params.put("nomenklaturId", f.getNomenklaturId());
-        }
-    }
-
-    // ================================================================
-    // UTILITIES
+    // UTILITAS UMUM
     // ================================================================
     private boolean notEmpty(List<?> list) {
         return list != null && !list.isEmpty();
@@ -226,5 +55,219 @@ public class TabelRepositoryImpl implements TabelRepository {
 
     private String buildWhere(List<String> conditions) {
         return conditions.isEmpty() ? "" : "WHERE " + String.join(" AND ", conditions);
+    }
+
+    // ================================================================
+    // FILTER BUILDER
+    // ================================================================
+    private void applyFilters(QueryParts qp, FilterDataAgregat f) {
+        if (notEmpty(f.getJenisAsnId())) {
+            qp.addJoin("jasn", " JOIN asn jasn ON da.id_jenis_asn = jasn.id_asn ");
+            qp.conditions.add("jasn.id_asn IN :jenisAsnId");
+            qp.params.put("jenisAsnId", f.getJenisAsnId());
+        }
+
+        boolean needInstansi = notEmpty(f.getInstansiId())
+                || notEmpty(f.getWilayahKerjaId())
+                || notEmpty(f.getKategoriInstansiId())
+                || notEmpty(f.getJenisInstansiId())
+                || notEmpty(f.getPokjaId());
+
+        if (needInstansi) {
+            qp.addJoin("ins", " JOIN instansi ins ON da.id_instansi = ins.id_instansi ");
+        }
+
+        if (notEmpty(f.getInstansiId())) {
+            qp.conditions.add("ins.id_instansi IN :instansiId");
+            qp.params.put("instansiId", f.getInstansiId());
+        }
+
+        if (notEmpty(f.getWilayahKerjaId())) {
+            qp.addJoin("w", " JOIN wilayah_kerja w ON ins.id_wilayah_kerja = w.id_wilayah ");
+            qp.conditions.add("w.id_wilayah IN :wilayahKerjaId");
+            qp.params.put("wilayahKerjaId", f.getWilayahKerjaId());
+        }
+
+        if (notEmpty(f.getKategoriInstansiId())) {
+            qp.addJoin("ki", " JOIN kategori_instansi ki ON ins.id_kategori_instansi = ki.id_kategori_instansi ");
+            qp.conditions.add("ki.id_kategori_instansi IN :kategoriInstansiId");
+            qp.params.put("kategoriInstansiId", f.getKategoriInstansiId());
+        }
+
+        if (notEmpty(f.getJenisInstansiId())) {
+            qp.addJoin("ji", " JOIN jenis_instansi ji ON ins.id_jenis_instansi = ji.id_jenis_instansi ");
+            qp.conditions.add("ji.id_jenis_instansi IN :jenisInstansiId");
+            qp.params.put("jenisInstansiId", f.getJenisInstansiId());
+        }
+
+        if (notEmpty(f.getPokjaId())) {
+            qp.addJoin("p", " JOIN pokja p ON ins.id_pokja = p.id_pokja ");
+            qp.conditions.add("p.id_pokja IN :pokjaId");
+            qp.params.put("pokjaId", f.getPokjaId());
+        }
+
+        boolean needJabatan = notEmpty(f.getNamaJabatanId())
+                || notEmpty(f.getJenjangId())
+                || notEmpty(f.getNomenklaturId());
+
+        if (needJabatan) {
+            qp.addJoin("jbtn", " JOIN jabatan jbtn ON da.id_jabatan = jbtn.id_jabatan ");
+        }
+
+        if (notEmpty(f.getNamaJabatanId())) {
+            qp.addJoin("nj", " JOIN nama_jabatan nj ON jbtn.id_nama_jabatan = nj.id_nama_jabatan ");
+            qp.conditions.add("nj.id_nama_jabatan IN :namaJabatanId");
+            qp.params.put("namaJabatanId", f.getNamaJabatanId());
+        }
+
+        if (notEmpty(f.getJenjangId())) {
+            qp.addJoin("jnjng", " JOIN jenjang jnjng ON jbtn.id_jenjang = jnjng.id_jenjang ");
+            qp.conditions.add("jnjng.id_jenjang IN :jenjangId");
+            qp.params.put("jenjangId", f.getJenjangId());
+        }
+
+        if (notEmpty(f.getNomenklaturId())) {
+            qp.addJoin("nmk", " JOIN nomenklatur nmk ON nj.id_nomenklatur = nmk.id_nomenklatur ");
+            qp.conditions.add("nmk.id_nomenklatur IN :nomenklaturId");
+            qp.params.put("nomenklaturId", f.getNomenklaturId());
+        }
+    }
+
+    // ================================================================
+    // PEMBANTU COUNT
+    // ================================================================
+    private long getTotalCount(String sql, QueryParts qp) {
+        String countSql = "SELECT COUNT(*) FROM (" + sql + ") AS total";
+        var countQuery = em.createNativeQuery(countSql);
+        qp.params.forEach(countQuery::setParameter);
+        return ((Number) countQuery.getSingleResult()).longValue();
+    }
+
+    // ================================================================
+    // 1️⃣ INSTANSI
+    // ================================================================
+    @Override
+    public Page<TabelPegawai> getJumlahPegawaiBerdasarkanInstansiWithFilter(FilterDataAgregat filter, Pageable pageable) {
+        QueryParts qp = new QueryParts();
+        qp.addJoin("ins", " JOIN instansi ins ON da.id_instansi = ins.id_instansi ");
+        applyFilters(qp, filter);
+
+        String sql = String.format("""
+            SELECT 
+                ins.nama_instansi AS nama,
+                ins.id_instansi AS id,
+                SUM(da.jumlah) AS jumlah
+            FROM data_agregat da
+            %s
+            %s
+            GROUP BY ins.nama_instansi, ins.id_instansi
+            ORDER BY SUM(da.jumlah) DESC
+        """, qp.joins, buildWhere(qp.conditions));
+
+        var query = em.createNativeQuery(sql);
+        qp.params.forEach(query::setParameter);
+
+        long total = getTotalCount(sql, qp);
+        query.setFirstResult((int) pageable.getOffset());
+        query.setMaxResults(pageable.getPageSize());
+
+        @SuppressWarnings("unchecked")
+        List<Object[]> result = query.getResultList();
+
+        List<TabelPegawai> data = result.stream()
+            .map(row -> new TabelPegawai(
+                (String) row[0],
+                ((Number) row[1]).longValue(),
+                ((Number) row[2]).longValue()
+            ))
+            .collect(Collectors.toList());
+
+        return new PageImpl<>(data, pageable, total);
+    }
+
+    // ================================================================
+    // 2️⃣ JABATAN
+    // ================================================================
+    @Override
+    public Page<TabelPegawai> getJumlahPegawaiBerdasarkanJabatanWithFilter(FilterDataAgregat filter, Pageable pageable) {
+        QueryParts qp = new QueryParts();
+        qp.addJoin("jbtn", " JOIN jabatan jbtn ON da.id_jabatan = jbtn.id_jabatan ");
+        qp.addJoin("nj", " JOIN nama_jabatan nj ON jbtn.id_nama_jabatan = nj.id_nama_jabatan ");
+        applyFilters(qp, filter);
+
+        String sql = String.format("""
+            SELECT 
+                nj.nama_jabatan AS nama,
+                nj.id_nama_jabatan AS id,
+                SUM(da.jumlah) AS jumlah
+            FROM data_agregat da
+            %s
+            %s
+            GROUP BY nj.nama_jabatan, nj.id_nama_jabatan
+            ORDER BY SUM(da.jumlah) DESC
+        """, qp.joins, buildWhere(qp.conditions));
+
+        var query = em.createNativeQuery(sql);
+        qp.params.forEach(query::setParameter);
+
+        long total = getTotalCount(sql, qp);
+        query.setFirstResult((int) pageable.getOffset());
+        query.setMaxResults(pageable.getPageSize());
+
+        @SuppressWarnings("unchecked")
+        List<Object[]> result = query.getResultList();
+
+        List<TabelPegawai> data = result.stream()
+            .map(row -> new TabelPegawai(
+                (String) row[0],
+                ((Number) row[1]).longValue(),
+                ((Number) row[2]).longValue()
+            ))
+            .collect(Collectors.toList());
+
+        return new PageImpl<>(data, pageable, total);
+    }
+
+    // ================================================================
+    // 3️⃣ WILAYAH KERJA
+    // ================================================================
+    @Override
+    public Page<TabelPegawai> getJumlahPegawaiBerdasarkanWilkerWithFilter(FilterDataAgregat filter, Pageable pageable) {
+        QueryParts qp = new QueryParts();
+        qp.addJoin("ins", " JOIN instansi ins ON da.id_instansi = ins.id_instansi ");
+        qp.addJoin("w", " JOIN wilayah_kerja w ON ins.id_wilayah_kerja = w.id_wilayah ");
+        applyFilters(qp, filter);
+
+        String sql = String.format("""
+            SELECT 
+                w.nama_wilayah AS nama,
+                w.id_wilayah AS id,
+                SUM(da.jumlah) AS jumlah
+            FROM data_agregat da
+            %s
+            %s
+            GROUP BY w.nama_wilayah, w.id_wilayah
+            ORDER BY SUM(da.jumlah) DESC
+        """, qp.joins, buildWhere(qp.conditions));
+
+        var query = em.createNativeQuery(sql);
+        qp.params.forEach(query::setParameter);
+
+        long total = getTotalCount(sql, qp);
+        query.setFirstResult((int) pageable.getOffset());
+        query.setMaxResults(pageable.getPageSize());
+
+        @SuppressWarnings("unchecked")
+        List<Object[]> result = query.getResultList();
+
+        List<TabelPegawai> data = result.stream()
+            .map(row -> new TabelPegawai(
+                (String) row[0],
+                ((Number) row[1]).longValue(),
+                ((Number) row[2]).longValue()
+            ))
+            .collect(Collectors.toList());
+
+        return new PageImpl<>(data, pageable, total);
     }
 }

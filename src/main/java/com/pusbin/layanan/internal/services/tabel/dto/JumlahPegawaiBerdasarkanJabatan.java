@@ -9,5 +9,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class JumlahPegawaiBerdasarkanJabatan {
     private String jabatan; 
+    long id;
     private Long jumlah; 
 }

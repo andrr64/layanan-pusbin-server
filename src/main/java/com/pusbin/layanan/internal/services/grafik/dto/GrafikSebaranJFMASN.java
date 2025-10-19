@@ -7,8 +7,10 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class GrafikKategori {
+public class GrafikSebaranJFMASN {
     String nama;
-    long id;
-    long jumlah;
+    long jenjangId;
+    long jumlah; 
+    String kategori;
+    long kategoriInstansiId;
 }

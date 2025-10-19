@@ -63,7 +63,7 @@ public class UserServiceImpl implements UserService {
         // Validasi password (pakai HashUtil.validate)
         boolean valid = HashUtil.validate(request.getPassword(), user.getPassword());
         if (!valid) {
-            throw new NotFoundException("User tidak ditemukan!");
+            throw new NotFoundException("Password salah!");
         }
 
         // Jika lolos validasi, buat response
