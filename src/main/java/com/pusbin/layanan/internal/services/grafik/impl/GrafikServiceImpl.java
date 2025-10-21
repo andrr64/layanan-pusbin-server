@@ -36,9 +36,10 @@ public class GrafikServiceImpl implements GrafikService {
         try {
             return repository.readGrafikSebaranJFMASN(filter);
         } catch (Exception e) {
+            System.out.println(e.toString());
             throw new RuntimeException("Not supported yet.");
         }
-        
+
     }
 
     @Override
@@ -46,9 +47,10 @@ public class GrafikServiceImpl implements GrafikService {
         try {
             return repository.readGrafikSebaranJFK(filter);
         } catch (Exception e) {
+            System.out.println(e.toString());
             throw new RuntimeException("Not supported yet.");
         }
-        
+
     }
 
     @Override
@@ -56,9 +58,10 @@ public class GrafikServiceImpl implements GrafikService {
         try {
             return repository.readGrafikSebaranASNJFK(filter);
         } catch (Exception e) {
+            System.out.println(e.toString());
             throw new RuntimeException("Not supported yet.");
         }
-        
+
     }
 
 }

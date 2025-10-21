@@ -34,7 +34,8 @@ public class GrafikRepositoryImpl implements GrafikRepository {
             List<String> conditions,
             Map<String, Object> params,
             Set<String> usedAliases
-    ) {
+            ) {
+
         QueryParts() {
             this(new StringBuilder(), new ArrayList<>(), new HashMap<>(), new HashSet<>());
         }
@@ -86,7 +87,7 @@ public class GrafikRepositoryImpl implements GrafikRepository {
 
         // -- WILKER
         if (notEmpty(f.getWilayahKerjaId())) {
-            qp.addJoin("w", " JOIN wilayah_kerja w ON ins.id_wilayah = w.id_wilayah ");
+            qp.addJoin("w", " JOIN wilayah_kerja w ON ins.id_wilayah_kerja = w.id_wilayah ");
             qp.conditions.add("w.id_wilayah IN :wilayahKerjaId");
             qp.params.put("wilayahKerjaId", f.getWilayahKerjaId());
         }
@@ -169,10 +170,10 @@ public class GrafikRepositoryImpl implements GrafikRepository {
 
         return result.stream()
                 .map(row -> new GrafikKategori(
-                        (String) row[0], // nama_jabatan
-                        ((Number) row[1]).longValue(), // id_nama_jabatan
-                        ((Number) row[2]).longValue() // jumlah
-                ))
+                (String) row[0], // nama_jabatan
+                ((Number) row[1]).longValue(), // id_nama_jabatan
+                ((Number) row[2]).longValue() // jumlah
+        ))
                 .collect(Collectors.toList());
     }
 
@@ -207,12 +208,12 @@ public class GrafikRepositoryImpl implements GrafikRepository {
 
         return result.stream()
                 .map(row -> new GrafikSebaranJFMASN(
-                        (String) row[0], // nama_jenjang
-                        ((Number) row[1]).longValue(), // id_jenjang
-                        ((Number) row[4]).longValue(), // jumlah
-                        (String) row[2], // kategori_instansi
-                        ((Number) row[3]).longValue() // id_kategori_instansi
-                ))
+                (String) row[0], // nama_jenjang
+                ((Number) row[1]).longValue(), // id_jenjang
+                ((Number) row[4]).longValue(), // jumlah
+                (String) row[2], // kategori_instansi
+                ((Number) row[3]).longValue() // id_kategori_instansi
+        ))
                 .collect(Collectors.toList());
     }
 
@@ -247,12 +248,12 @@ public class GrafikRepositoryImpl implements GrafikRepository {
 
         return result.stream()
                 .map(row -> new GrafikSebaranJFK(
-                        (String) row[0], // kategori_instansi
-                        ((Number) row[1]).longValue(), // id_kategori_instansi
-                        ((Number) row[4]).longValue(), // jumlah
-                        (String) row[2],
-                        ((Number) row[3]).longValue() // id_nama_jabatan // nama_jabatan
-                ))
+                (String) row[0], // kategori_instansi
+                ((Number) row[1]).longValue(), // id_kategori_instansi
+                ((Number) row[4]).longValue(), // jumlah
+                (String) row[2],
+                ((Number) row[3]).longValue() // id_nama_jabatan // nama_jabatan
+        ))
                 .collect(Collectors.toList());
     }
 
@@ -286,12 +287,12 @@ public class GrafikRepositoryImpl implements GrafikRepository {
 
         return result.stream()
                 .map(row -> new GrafikSebaranASNJFK(
-                        (String) row[0], // jenis_asn
-                        ((Number) row[1]).longValue(), // id_asn
-                        ((Number) row[4]).longValue(), // jumlah
-                        (String) row[2], // jenjang
-                        ((Number) row[3]).longValue() // id_jenjang
-                ))
+                (String) row[0], // jenis_asn
+                ((Number) row[1]).longValue(), // id_asn
+                ((Number) row[4]).longValue(), // jumlah
+                (String) row[2], // jenjang
+                ((Number) row[3]).longValue() // id_jenjang
+        ))
                 .collect(Collectors.toList());
     }
 }
