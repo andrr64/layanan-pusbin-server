@@ -22,8 +22,8 @@ public class User {
     @Column(nullable = false, length = 128)
     private String nama;
 
-    @Column(nullable = false, length = 64)
-    private String username;
+    @Column(nullable = false, length = 18)
+    private String nip;
 
     @Column(nullable = false, length = 64)
     private String email;

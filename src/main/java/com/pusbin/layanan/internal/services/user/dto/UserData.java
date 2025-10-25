@@ -11,12 +11,12 @@ public class UserData {
 
     private String nama;
     private String email;
-    private String username;
+    private String nip;
 
     public static UserData fromUserModel(User user) {
         UserData data = new UserData();
         data.setNama(user.getNama());
-        data.setUsername(user.getUsername());
+        data.setNip(user.getNip());
         data.setEmail(user.getEmail());
         return data;
     }
