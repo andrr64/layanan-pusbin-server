@@ -22,6 +22,7 @@ private EntityManager em;
 
     @Override
     public Long getTotalInstansi() {
+        
        Long count = em.createQuery("SELECT COUNT(i) FROM Instansi i", Long.class)
        .getSingleResult();
        return count;
