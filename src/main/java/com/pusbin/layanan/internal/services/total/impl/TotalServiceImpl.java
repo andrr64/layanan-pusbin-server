@@ -3,6 +3,7 @@ package com.pusbin.layanan.internal.services.total.impl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.pusbin.layanan.internal.common.types.FilterDataAgregat;
 import com.pusbin.layanan.internal.services.total.TotalRepository;
 import com.pusbin.layanan.internal.services.total.TotalService;
 import com.pusbin.layanan.internal.services.total.dto.TotalData;
@@ -15,14 +16,14 @@ public class TotalServiceImpl implements TotalService {
     TotalRepository repository;
 
     @Override
-    public TotalData totalPegawai () {
-        TotalData data = new TotalData("Total Pegawai", repository.getTotalPegawai());
+    public TotalData totalPegawai (FilterDataAgregat filterDataAgregat) {
+        TotalData data = new TotalData("Total Pegawai", repository.getTotalPegawai(filterDataAgregat));
         return data;
     }
 
     @Override
-    public TotalData totalInstansi() {
-        TotalData data = new TotalData("Total Instansi", repository.getTotalInstansi());
+    public TotalData totalInstansi(FilterDataAgregat filterDataAgregat) {
+        TotalData data = new TotalData("Total Instansi", repository.getTotalInstansi(filterDataAgregat));
         return data; 
     }
 }
