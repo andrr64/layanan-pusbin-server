@@ -135,10 +135,13 @@ public class GrafikRepositoryImpl implements GrafikRepository {
         }
 
         if (notEmpty(f.getNomenklaturId())) {
-            qp.addJoin("nmk", " JOIN nomenklatur nmk ON nj.id_nomenklatur = nmk.id_nomenklatur ");
-            qp.conditions.add("nmk.id_nomenklatur IN :nomenklaturId");
-            qp.params.put("nomenklaturId", f.getNomenklaturId());
-        }
+    // Pastikan sudah join ke nama_jabatan dulu
+    qp.addJoin("nj", " JOIN nama_jabatan nj ON jbtn.id_nama_jabatan = nj.id_nama_jabatan ");
+    qp.addJoin("nmk", " JOIN nomenklatur nmk ON nj.id_nomenklatur = nmk.id_nomenklatur ");
+    qp.conditions.add("nmk.id_nomenklatur IN :nomenklaturId");
+    qp.params.put("nomenklaturId", f.getNomenklaturId());
+}
+
     }
 
     // ================================================================
