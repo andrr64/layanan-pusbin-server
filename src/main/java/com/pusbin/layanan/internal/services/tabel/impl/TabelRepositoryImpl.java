@@ -33,8 +33,7 @@ public class TabelRepositoryImpl implements TabelRepository {
             StringBuilder joins,
             List<String> conditions,
             Map<String, Object> params,
-            Set<String> usedAliases
-    ) {
+            Set<String> usedAliases) {
         QueryParts() {
             this(new StringBuilder(), new ArrayList<>(), new HashMap<>(), new HashSet<>());
         }
@@ -126,13 +125,13 @@ public class TabelRepositoryImpl implements TabelRepository {
             qp.params.put("jenjangId", f.getJenjangId());
         }
 
-       if (notEmpty(f.getNomenklaturId())) {
-    // Pastikan sudah join ke nama_jabatan dulu
-    qp.addJoin("nj", " JOIN nama_jabatan nj ON jbtn.id_nama_jabatan = nj.id_nama_jabatan ");
-    qp.addJoin("nmk", " JOIN nomenklatur nmk ON nj.id_nomenklatur = nmk.id_nomenklatur ");
-    qp.conditions.add("nmk.id_nomenklatur IN :nomenklaturId");
-    qp.params.put("nomenklaturId", f.getNomenklaturId());
-}
+        if (notEmpty(f.getNomenklaturId())) {
+            // Pastikan sudah join ke nama_jabatan dulu
+            qp.addJoin("nj", " JOIN nama_jabatan nj ON jbtn.id_nama_jabatan = nj.id_nama_jabatan ");
+            qp.addJoin("nmk", " JOIN nomenklatur nmk ON nj.id_nomenklatur = nmk.id_nomenklatur ");
+            qp.conditions.add("nmk.id_nomenklatur IN :nomenklaturId");
+            qp.params.put("nomenklaturId", f.getNomenklaturId());
+        }
 
     }
 
@@ -150,22 +149,23 @@ public class TabelRepositoryImpl implements TabelRepository {
     // 1️⃣ INSTANSI
     // ================================================================
     @Override
-    public Page<TabelPegawai> getJumlahPegawaiBerdasarkanInstansiWithFilter(FilterDataAgregat filter, Pageable pageable) {
+    public Page<TabelPegawai> getJumlahPegawaiBerdasarkanInstansiWithFilter(FilterDataAgregat filter,
+            Pageable pageable) {
         QueryParts qp = new QueryParts();
         qp.addJoin("ins", " JOIN instansi ins ON da.id_instansi = ins.id_instansi ");
         applyFilters(qp, filter);
 
         String sql = String.format("""
-            SELECT 
-                ins.nama_instansi AS nama,
-                ins.id_instansi AS id,
-                SUM(da.jumlah) AS jumlah
-            FROM data_agregat da
-            %s
-            %s
-            GROUP BY ins.nama_instansi, ins.id_instansi
-            ORDER BY SUM(da.jumlah) DESC
-        """, qp.joins, buildWhere(qp.conditions));
+                    SELECT
+                        ins.nama_instansi AS nama,
+                        ins.id_instansi AS id,
+                        SUM(da.jumlah) AS jumlah
+                    FROM data_agregat da
+                    %s
+                    %s
+                    GROUP BY ins.nama_instansi, ins.id_instansi
+                    ORDER BY SUM(da.jumlah) DESC
+                """, qp.joins, buildWhere(qp.conditions));
 
         var query = em.createNativeQuery(sql);
         qp.params.forEach(query::setParameter);
@@ -178,37 +178,42 @@ public class TabelRepositoryImpl implements TabelRepository {
         List<Object[]> result = query.getResultList();
 
         List<TabelPegawai> data = result.stream()
-            .map(row -> new TabelPegawai(
-                (String) row[0],
-                ((Number) row[1]).longValue(),
-                ((Number) row[2]).longValue()
-            ))
-            .collect(Collectors.toList());
+                .map(row -> new TabelPegawai(
+                        (String) row[0],
+                        ((Number) row[1]).longValue(),
+                        ((Number) row[2]).longValue()))
+                .collect(Collectors.toList());
 
         return new PageImpl<>(data, pageable, total);
     }
 
     // ================================================================
-    // 2️⃣ JABATAN
+    // 2️⃣ JABATAN (Format Output: Jabatan - Jenjang) - [PERBAIKAN]
     // ================================================================
     @Override
-    public Page<TabelPegawai> getJumlahPegawaiBerdasarkanJabatanWithFilter(FilterDataAgregat filter, Pageable pageable) {
+    public Page<TabelPegawai> getJumlahPegawaiBerdasarkanJabatanWithFilter(FilterDataAgregat filter,
+            Pageable pageable) {
         QueryParts qp = new QueryParts();
+
+        // Pastikan JOIN ke semua tabel yang diperlukan
         qp.addJoin("jbtn", " JOIN jabatan jbtn ON da.id_jabatan = jbtn.id_jabatan ");
         qp.addJoin("nj", " JOIN nama_jabatan nj ON jbtn.id_nama_jabatan = nj.id_nama_jabatan ");
+        qp.addJoin("jnjng", " JOIN jenjang jnjng ON jbtn.id_jenjang = jnjng.id_jenjang "); // <-- WAJIB
+
         applyFilters(qp, filter);
 
+        // Query SQL diperbaiki (jnjng.nama_jenjang -> jnjng.jenjang)
         String sql = String.format("""
-            SELECT 
-                nj.nama_jabatan AS nama,
-                nj.id_nama_jabatan AS id,
-                SUM(da.jumlah) AS jumlah
-            FROM data_agregat da
-            %s
-            %s
-            GROUP BY nj.nama_jabatan, nj.id_nama_jabatan
-            ORDER BY SUM(da.jumlah) DESC
-        """, qp.joins, buildWhere(qp.conditions));
+                    SELECT
+                        CONCAT(nj.nama_jabatan, ' - ', jnjng.jenjang) AS nama,
+                        jbtn.id_jabatan AS id,
+                        SUM(da.jumlah) AS jumlah
+                    FROM data_agregat da
+                    %s
+                    %s
+                    GROUP BY jbtn.id_jabatan, nj.nama_jabatan, jnjng.jenjang
+                    ORDER BY SUM(da.jumlah) DESC
+                """, qp.joins, buildWhere(qp.conditions));
 
         var query = em.createNativeQuery(sql);
         qp.params.forEach(query::setParameter);
@@ -221,12 +226,11 @@ public class TabelRepositoryImpl implements TabelRepository {
         List<Object[]> result = query.getResultList();
 
         List<TabelPegawai> data = result.stream()
-            .map(row -> new TabelPegawai(
-                (String) row[0],
-                ((Number) row[1]).longValue(),
-                ((Number) row[2]).longValue()
-            ))
-            .collect(Collectors.toList());
+                .map(row -> new TabelPegawai(
+                        (String) row[0],
+                        ((Number) row[1]).longValue(),
+                        ((Number) row[2]).longValue()))
+                .collect(Collectors.toList());
 
         return new PageImpl<>(data, pageable, total);
     }
@@ -242,16 +246,16 @@ public class TabelRepositoryImpl implements TabelRepository {
         applyFilters(qp, filter);
 
         String sql = String.format("""
-            SELECT 
-                w.nama_wilayah AS nama,
-                w.id_wilayah AS id,
-                SUM(da.jumlah) AS jumlah
-            FROM data_agregat da
-            %s
-            %s
-            GROUP BY w.nama_wilayah, w.id_wilayah
-            ORDER BY SUM(da.jumlah) DESC
-        """, qp.joins, buildWhere(qp.conditions));
+                    SELECT
+                        w.nama_wilayah AS nama,
+                        w.id_wilayah AS id,
+                        SUM(da.jumlah) AS jumlah
+                    FROM data_agregat da
+                    %s
+                    %s
+                    GROUP BY w.nama_wilayah, w.id_wilayah
+                    ORDER BY SUM(da.jumlah) DESC
+                """, qp.joins, buildWhere(qp.conditions));
 
         var query = em.createNativeQuery(sql);
         qp.params.forEach(query::setParameter);
@@ -264,12 +268,11 @@ public class TabelRepositoryImpl implements TabelRepository {
         List<Object[]> result = query.getResultList();
 
         List<TabelPegawai> data = result.stream()
-            .map(row -> new TabelPegawai(
-                (String) row[0],
-                ((Number) row[1]).longValue(),
-                ((Number) row[2]).longValue()
-            ))
-            .collect(Collectors.toList());
+                .map(row -> new TabelPegawai(
+                        (String) row[0],
+                        ((Number) row[1]).longValue(),
+                        ((Number) row[2]).longValue()))
+                .collect(Collectors.toList());
 
         return new PageImpl<>(data, pageable, total);
     }
