@@ -33,5 +33,7 @@ build/
 .vscode/
 
 application.properties
+.env
 skrip_otomatisasi
 dokumen_penting
+*.jar

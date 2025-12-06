@@ -1,0 +1,44 @@
+# --- Stage 1: Builder (Builds the JAR) ---
+FROM eclipse-temurin:21-jdk-alpine AS builder
+
+# Set the working directory for the build
+WORKDIR /app
+
+# 1. Copy Maven Wrapper and POM first 
+# (This allows Docker to cache dependencies so it doesn't re-download them every time you change code)
+COPY .mvn/ .mvn
+COPY mvnw pom.xml ./
+
+# 2. Fix Windows Line Endings (CRITICAL for Windows Users)
+# This converts Windows CRLF to Linux LF so the script runs
+RUN sed -i 's/\r$//' mvnw
+
+# 3. Make the wrapper executable
+RUN chmod +x mvnw
+
+# 4. Download dependencies (Offline mode)
+# This step is optional but speeds up future builds
+RUN ./mvnw dependency:go-offline
+
+# 5. Copy the actual source code
+COPY src ./src
+
+# 6. Build the project
+# -DskipTests is recommended here because you should run tests in CI before building Docker
+RUN ./mvnw clean package -DskipTests
+
+# --- Stage 2: Runner (Runs the JAR) ---
+FROM eclipse-temurin:21-jre-alpine
+
+# Set root as the working directory inside the container
+WORKDIR /root
+
+# Copy only the compiled JAR from the 'builder' stage to the root folder
+# We rename it to 'app.jar' to keep things simple
+COPY --from=builder /app/target/*.jar app.jar
+
+# Expose the port your app runs on
+EXPOSE 8080
+
+# Run the application
+ENTRYPOINT ["java", "-jar", "app.jar"]
